@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sequential Rainbow Text Animation</title>
+    <title>Toggle Moving Rainbow Text Animation</title>
     <style>
         /* 기본 스타일 */
         body {
@@ -14,21 +14,47 @@
             margin: 0;
             background-color: #f0f0f0;
             font-family: Arial, sans-serif;
+            overflow: hidden;
         }
 
         .rainbow-text {
             font-size: 48px;
             font-weight: bold;
+            width: 600px;
+            height: 800px;
             display: flex;
-            gap: 5px; /* 각 글자 간격 */
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: space-around;
+            align-items: center;
+            position: relative; /* 컨테이너를 기준으로 자식 요소 위치 설정 */
         }
 
         .letter {
-            transition: color 0.1s; /* 색상 전환 시간 */
+            transition: color 0.1s, transform 0.3s; /* 색상 및 위치 전환 시간 */
+            position: relative; /* 고정 위치 시 컨테이너 내부에서 상대 위치로 */
+        }
+
+        /* 스위치 스타일 */
+        .switch-container {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+
+        .switch-button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
+
+    <!-- 스위치 버튼 -->
+    <div class="switch-container">
+        <button class="switch-button" id="toggleButton">움직임 켜기</button>
+    </div>
 
     <div class="rainbow-text">
         <span class="letter">영</span>
@@ -43,17 +69,61 @@
         const colors = ["red", "orange", "yellow", "green", "blue", "indigo", "violet"];
         const letters = document.querySelectorAll('.letter');
         let colorIndex = 0;
+        let isMoving = false;
+        let moveIntervalId;
 
-        // 각 글자의 색상을 규칙적으로 변경
+        // 색상 변경 함수 (스위치와 상관없이 항상 실행)
         setInterval(() => {
             letters.forEach((letter, index) => {
-                // 각 글자에 색상을 순서대로 지정
                 letter.style.color = colors[(colorIndex + index) % colors.length];
             });
-            colorIndex = (colorIndex + 1) % colors.length; // 다음 색상으로 이동
-        }, 130); // 0.1초마다 실행
+            colorIndex = (colorIndex + 1) % colors.length;
+        }, 100); // 0.1초마다 실행
+
+        // 무작위 위치 지정 함수
+        function setRandomPosition(element) {
+            const container = document.querySelector('.rainbow-text');
+            const maxX = container.clientWidth - element.offsetWidth;
+            const maxY = container.clientHeight - element.offsetHeight;
+            const randomX = Math.random() * maxX;
+            const randomY = Math.random() * maxY;
+            element.style.position = 'absolute';
+            element.style.left = `${randomX}px`;
+            element.style.top = `${randomY}px`;
+        }
+
+        // 글자를 무작위로 움직이게 하는 함수
+        function startMoving() {
+            moveIntervalId = setInterval(() => {
+                letters.forEach(letter => setRandomPosition(letter));
+            }, 100); // 0.1초마다 위치 변경
+        }
+
+        // 글자를 고정된 위치에서 멈추게 하는 함수
+        function stopMoving() {
+            clearInterval(moveIntervalId); // 움직임 중지
+            letters.forEach((letter, index) => {
+                letter.style.position = 'relative'; // 컨테이너 내부 고정 위치로
+                letter.style.left = '0';
+                letter.style.top = '0';
+            });
+        }
+
+        // 스위치 버튼 클릭 이벤트
+        document.getElementById('toggleButton').addEventListener('click', () => {
+            isMoving = !isMoving;
+            if (isMoving) {
+                startMoving();
+                document.getElementById('toggleButton').textContent = '움직임 끄기';
+            } else {
+                stopMoving();
+                document.getElementById('toggleButton').textContent = '움직임 켜기';
+            }
+        });
+
+        // 초기 상태 고정
+        stopMoving();
     </script>
 
 </body>
 </html>
-	
